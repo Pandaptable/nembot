@@ -6,7 +6,7 @@ from ctypes import wintypes
 import win32api
 
 from config import EXEC_FILE, GAME
-from globals import csgo_window_handle, nonce_signal, ui_instance, COMMAND_QUEUE
+from globals import COMMAND_QUEUE, csgo_window_handle, nonce_signal, ui_instance
 from util.ui import UI
 
 WM_COPYDATA = 0x004A
@@ -90,7 +90,7 @@ def generate_nonce(length: int) -> str:
 		str: The generated nonce.
 	"""
 	invisible_chars = [
-		"\u200b",  # Zero-width space
+		# "\u200b",  # Zero-width space (this no longer works, it gets turned into a quotation mark by chat?????)
 		"\u200c",  # Zero-width non-joiner
 		"\u0020",  # Space
 		"\u2800",  # Braille blank
