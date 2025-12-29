@@ -99,6 +99,7 @@ def generate_nonce(length: int) -> str:
 	"""
 	invisible_chars = [
 		# "\u200b",  # Zero-width space (this no longer works, it gets turned into a quotation mark by chat?????)
+		# "\u200b",  # Zero-width space (this no longer works, it gets turned into a quotation mark by chat?????)
 		"\u200c",  # Zero-width non-joiner
 		"\u0020",  # Space
 		"\u2800",  # Braille blank
