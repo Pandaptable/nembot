@@ -1,12 +1,18 @@
 import asyncio
 import ctypes
+import os
 import random
+import time
 from ctypes import wintypes
 
+import psutil
 import win32api
+import win32gui
+import win32process
+from pynput.keyboard import Controller
 
-from config import EXEC_FILE, GAME
-from globals import COMMAND_QUEUE, csgo_window_handle, nonce_signal, ui_instance
+from config import EXEC_FILE, EXEC_KEY, GAME
+from globals import COMMAND_QUEUE, csgo_window_handle, nonce_signal, server, ui_instance
 from util.ui import UI
 
 WM_COPYDATA = 0x004A
@@ -37,7 +43,7 @@ class TemplateGenerator:
 gen = TemplateGenerator()
 
 
-def write_command(command: str) -> None:
+async def write_command(command: str) -> None:
 	"""
 	Write a command to the file that gets executed by the game.
 
@@ -45,8 +51,10 @@ def write_command(command: str) -> None:
 		command (str): The command to write.
 	"""
 	with open(EXEC_FILE, "w", encoding="utf-8") as f:
-		command = gen.generate(command)
+		# command = gen.generate(command)
 		f.write(command)
+		f.flush
+		os.fsync(f.fileno())
 
 
 def clear_command() -> None:
@@ -101,59 +109,111 @@ def generate_nonce(length: int) -> str:
 	return nonce
 
 
-async def execute_command_cs2(command: str, delay: float | None = None, check_nonce: bool = True) -> None:
+# async def execute_command_cs2(command: str, delay: float | None = None, check_nonce: bool = True) -> None:
+# 	"""
+# 	Execute a command in CS2.
+
+# 	Args:
+# 		command (str): The command to execute.
+# 		delay (float | None): The time to wait before executing the command in seconds. Defaults to None.
+# 		check_nonce (bool): Whether to check for nonce when running the command. Defaults to True.
+
+# 	Notes:
+
+# 		* This function will retry the command up to 3 times if it fails.
+# 		* It will wait for 2.5 seconds after sending the command to see if it gets executed.
+# 		* If the command fails to get executed after the 3rd retry, it will print a message saying that the command failed to run.
+# 	"""
+# 	nonce = generate_nonce(4) if check_nonce else None
+# 	if check_nonce:
+# 		nonce_signal.register(nonce)
+
+# 	for _ in range(3):
+# 		if delay is not None and delay != 3621:
+# 			await asyncio.sleep(delay)
+# 		if delay == 3621:
+# 			write_command(command + (f"\necholn {nonce}" if check_nonce else ""))
+# 			await asyncio.sleep(0.05)
+# 			clear_command()
+# 		else:
+# 			await asyncio.sleep(0.25)
+# 			if "say" in command or "say_team" in command:
+# 				write_command(command + (nonce if check_nonce else ""))
+# 				await asyncio.sleep(0.05)
+# 				clear_command()
+# 			else:
+# 				write_command(command)
+# 				await asyncio.sleep(0.05)
+# 				clear_command()
+
+# 		if check_nonce:
+# 			try:
+# 				await nonce_signal.wait(nonce, timeout=2.5)
+# 			except asyncio.TimeoutError:
+# 				continue
+# 			else:
+# 				break
+# 		else:
+# 			break
+# 	else:
+# 		if check_nonce:
+# 			nonce_signal.unregister(nonce)
+# 			ui_instance.update_status(f"Failed to run command: {command}")
+# 			print(f"Failed to run command {command}")
+# 		return
+# 	ui_instance.update_status("Ready to run command.")
+
+
+# keeping the following 2 functions in case of future issues (also check_ingame may be useful)
+async def check_ingame() -> bool:
 	"""
-	Execute a command in CS2.
+	Check if the game is active and ready for input.
+
+	Returns:
+		bool: True if the game is active and not in text input mode, False otherwise.
+	"""
+	active_window_handle = win32gui.GetForegroundWindow()
+	_, pid = win32process.GetWindowThreadProcessId(active_window_handle)
+
+	if pid > 0:
+		try:
+			process = psutil.Process(pid)
+			process_name = process.name()
+		except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+			print("Unable to retrieve process info.")
+			return False
+	else:
+		print("Invalid PID or no valid window is currently focused.")
+		return False
+
+	return process_name == "cs2.exe" and server.get_info("player", "activity") != "textinput"
+
+
+async def send_key(key: str):
+	"""
+	Simulate a key press and release.
 
 	Args:
-		command (str): The command to execute.
-		delay (float | None): The time to wait before executing the command in seconds. Defaults to None.
-		check_nonce (bool): Whether to check for nonce when running the command. Defaults to True.
-
-	Notes:
-
-		* This function will retry the command up to 3 times if it fails.
-		* It will wait for 2.5 seconds after sending the command to see if it gets executed.
-		* If the command fails to get executed after the 3rd retry, it will print a message saying that the command failed to run.
+		key (str): The key to be pressed and released.
 	"""
-	nonce = generate_nonce(4) if check_nonce else None
-	if check_nonce:
-		nonce_signal.register(nonce)
+	keyboard = Controller()
+	keyboard.press(key)
+	keyboard.release(key)
 
-	for _ in range(3):
-		if delay is not None and delay != 3621:
-			await asyncio.sleep(delay)
-		if delay == 3621:
-			write_command(command + (f"\necholn {nonce}" if check_nonce else ""))
-			await asyncio.sleep(0.05)
-			clear_command()
-		else:
-			await asyncio.sleep(0.25)
-			if "say" in command or "say_team" in command:
-				write_command(command + (nonce if check_nonce else ""))
-				await asyncio.sleep(0.05)
-				clear_command()
-			else:
-				write_command(command)
-				await asyncio.sleep(0.05)
-				clear_command()
 
-		if check_nonce:
-			try:
-				await nonce_signal.wait(nonce, timeout=2.5)
-			except asyncio.TimeoutError:
-				continue
-			else:
-				break
-		else:
-			break
-	else:
-		if check_nonce:
-			nonce_signal.unregister(nonce)
-			ui_instance.update_status(f"Failed to run command: {command}")
-			print(f"Failed to run command {command}")
-		return
-	ui_instance.update_status("Ready to run command.")
+async def execute_command_cs2(command: str, delay: float | None = None, check_nonce: bool = True) -> None:
+	await write_command(command)
+
+	while not await check_ingame():
+		await asyncio.sleep(0.02)
+
+	if delay:
+		await asyncio.sleep(delay)
+
+	await asyncio.sleep(0.5)
+	await send_key(EXEC_KEY)
+	ui_instance.update_status(f"Executed commmand: {command}")
+	print(f"Executed commmand: {command}")
 
 
 async def execute_command(command: str, delay: float | None = None, check_nonce: bool = True) -> None:

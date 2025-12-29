@@ -1,22 +1,18 @@
 import asyncio
-import aiohttp
 import random
 import re
 
-import psutil
-import win32gui
-import win32process
+import aiohttp
 from lingua import Language
-from pynput.keyboard import Controller
 
 from command_execution import execute_command
+from commands.container import open_container
 from commands.fact import get_fact
 from commands.fetch import find_recently_played
 from commands.webfishing import cast_line
-from commands.container import open_container
 from config import *
 from database import check_if_player_exists, get_balance, insert_command
-from globals import BANNED_LIST, COMMAND_LIST, COMMAND_REGEX, TEAMS, detector, server, LANGUAGE_SHORT_CODES, COMMAND_QUEUE, TRANSLATION_QUEUE
+from globals import BANNED_LIST, COMMAND_LIST, COMMAND_QUEUE, COMMAND_REGEX, LANGUAGE_SHORT_CODES, TEAMS, TRANSLATION_QUEUE, detector, server
 from util.translate import translate_message
 
 
@@ -304,7 +300,7 @@ async def shock(args: str, username: str, steamid: int):
 					headers={"OpenShockToken": OPENSHOCK_API_TOKEN},
 				) as response:
 					if response.status == 200:
-						ui_instance.update_status("Sent shock" + ("s" if OPENSHOCK_PUNISHMENT_TYPE == "all" else f": intensity {intensity} & duration {duration}"))
+						ui_instance.update_status("Sent shock" + ("s" if OPENSHOCK_PUNISHMENT_TYPE == "all" else f": {intensity} for {duration / 1000}s"))
 						print("Shock" + ("s" if OPENSHOCK_PUNISHMENT_TYPE == "all" else "") + " sent successfully.")
 					elif response.status == 500:
 						pass
@@ -322,40 +318,3 @@ async def get_heart_rate():
 		int: The heart rate of the user.
 	"""
 	return open(f"{HR_DIRECTORY + HR_FILE}", "r", encoding="utf-8").read().splitlines()[0]
-
-
-# keeping the following 2 functions in case of future issues (also check_ingame may be useful)
-async def check_ingame() -> bool:
-	"""
-	Check if the game is active and ready for input.
-
-	Returns:
-		bool: True if the game is active and not in text input mode, False otherwise.
-	"""
-	active_window_handle = win32gui.GetForegroundWindow()
-	_, pid = win32process.GetWindowThreadProcessId(active_window_handle)
-
-	if pid > 0:
-		try:
-			process = psutil.Process(pid)
-			process_name = process.name()
-		except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-			print("Unable to retrieve process info.")
-			return False
-	else:
-		print("Invalid PID or no valid window is currently focused.")
-		return False
-
-	return process_name == "cs2.exe" and server.get_info("player", "activity") != "textinput"
-
-
-async def send_key(key: str):
-	"""
-	Simulate a key press and release.
-
-	Args:
-		key (str): The key to be pressed and released.
-	"""
-	keyboard = Controller()
-	keyboard.press(key)
-	keyboard.release(key)

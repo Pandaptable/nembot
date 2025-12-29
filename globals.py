@@ -1,10 +1,10 @@
-import win32gui
-from PyQt6.QtWidgets import QApplication
-from lingua import Language, LanguageDetectorBuilder
 from collections import deque
 
+import win32gui
+from lingua import Language, LanguageDetectorBuilder
+from PyQt6.QtWidgets import QApplication
 
-from config import GAME, GSI_TOKEN, COMMAND_PREFIX
+from config import COMMAND_PREFIX, GAME, GSI_TOKEN
 from gsi.server import GSIServer
 from util.signal import EventSignal
 from util.ui import UI
@@ -76,6 +76,7 @@ PRE_FILTER = [
 	"[SV CommandQueue]",
 	"[Prediction]",
 	"[SceneFileCache]",
+	"[SceneSystem]",
 	"execing selfbot",
 	"execing movement/de-subticks/",
 	"Invalid content height",
@@ -149,6 +150,8 @@ PRE_FILTER = [
 	"ChangeTeam() CTMDBG",
 	"GC Connection established for server version",
 	"EVERYONE CAN BUY!",
+	"ms  EventFrameBoundary_t",
+	"ms  Client Rendering",
 ]
 
 REGION_FILTER = [

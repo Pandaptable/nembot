@@ -199,7 +199,7 @@ async def cast_line(steamid: int, username: str, team: str):
 		"sparkling",
 		"large",
 		"gold",
-	])  # maybe implement double fish
+	])  # TODO: maybe implement double fish
 
 	rolls = []
 

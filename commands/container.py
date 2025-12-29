@@ -5,9 +5,9 @@ import random
 import aiohttp
 from thefuzz import process
 
-from database import insert_item
 from command_execution import execute_command
 from config import PREFIX
+from database import insert_item
 from globals import TEAMS
 
 
@@ -209,9 +209,9 @@ async def format_sticker(sticker_name: str, username: str) -> str:
 
 async def load_containers() -> dict:
 	async with aiohttp.ClientSession() as session:
-		async with session.get("https://bymykel.github.io/CSGO-API/api/en/crates.json") as response:
+		async with session.get("https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/crates.json") as response:
 			if response.status == 200:
-				data = await response.json()
+				data = json.loads(await response.text())
 			else:
 				raise Exception(f"Error: {response.status}")
 	return data
@@ -219,9 +219,9 @@ async def load_containers() -> dict:
 
 async def load_skins() -> dict:
 	async with aiohttp.ClientSession() as session:
-		async with session.get("https://bymykel.com/CSGO-API/api/en/skins.json") as response:
+		async with session.get("https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins.json") as response:
 			if response.status == 200:
-				data = await response.json()
+				data = json.loads(await response.text())
 			else:
 				raise Exception(f"Error: {response.status}")
 	return data
@@ -229,9 +229,9 @@ async def load_skins() -> dict:
 
 async def load_stickers() -> dict:
 	async with aiohttp.ClientSession() as session:
-		async with session.get("https://bymykel.com/CSGO-API/api/en/stickers.json") as response:
+		async with session.get("https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/stickers.json") as response:
 			if response.status == 200:
-				data = await response.json()
+				data = json.loads(await response.text())
 			else:
 				raise Exception(f"Error: {response.status}")
 	return data

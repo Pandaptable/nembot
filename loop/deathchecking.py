@@ -55,7 +55,7 @@ async def on_death():
 					headers={"OpenShockToken": OPENSHOCK_API_TOKEN},
 				) as response:
 					if response.status == 200:
-						ui_instance.update_status("Sent shock" + ("s" if OPENSHOCK_PUNISHMENT_TYPE == "all" else f": intensity {intensity} & duration {duration}"))
+						ui_instance.update_status("Sent shock" + ("s" if OPENSHOCK_PUNISHMENT_TYPE == "all" else f": {intensity} for {duration / 1000}s"))
 						print("Shock" + ("s" if OPENSHOCK_PUNISHMENT_TYPE == "all" else "") + " sent successfully.")
 					else:
 						print(f"Failed to activate shocker. Response: {response}")

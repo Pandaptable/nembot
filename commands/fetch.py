@@ -1,10 +1,11 @@
-# TODO: run on separate thread for async execution due to ctypes being blocking
 import ctypes
 
 import asqlite
 
 from config import DATABASE_NAME
 from globals import server, ui_instance
+
+# TODO: run on separate thread for async execution due to ctypes being blocking
 
 
 class EFriendFlags:
