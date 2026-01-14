@@ -1,6 +1,7 @@
 this repo is basically EOL lmao, feel free to still use it or whatever, i'll still update it from time to time but will offer 0 support, valve has killed any easy way for me to send console commands externally.. so i have to resort to sending keypresses to a file
 
-eventually i will likely rewrite this and implement telnet, but that only works on linux because valve is fucking retarded.. so until i switch to linux this repo is 99% EOL.
+~~eventually i will likely rewrite this and implement telnet, but that only works on linux because valve is fucking retarded.. so until i switch to linux this repo is 99% EOL.~~
+i forgot valve patched this too.
 
 ~~(anything < python 3.12 breaks i do not know why... it's the GSI library tho :3)~~
 
